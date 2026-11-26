@@ -90,4 +90,36 @@ class AuthController
             'message' => 'تم تسجيل الخروج بنجاح'
         ]);
     }
+
+    // تحديث بيانات الملف الشخصي (الاسم أو كلمة المرور)
+    public function updateProfile(Request $request)
+    {
+        // جلب الزبون الحالي الذي أرسل الطلب
+        $user = $request->user();
+
+        // التحقق من صحة البيانات المرسلة
+        $request->validate([
+            'name' => 'nullable|string|max:255',
+            'password' => 'nullable|string|min:6', // اختياري في حال أراد تغيير الباسورد فقط
+        ]);
+
+        // إذا أرسل اسماً جديداً، نقوم بتحديثه
+        if ($request->has('name') && $request->name != '') {
+            $user->name = $request->name;
+        }
+
+        // إذا أرسل كلمة مرور جديدة، نقوم بتشفيرها وتحديثها
+        if ($request->has('password') && $request->password != '') {
+            $user->password = bcrypt($request->password);
+        }
+
+        // حفظ التعديلات في قاعدة البيانات
+        $user->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'تم تحديث بيانات البروفايل بنجاح',
+            'data' => $user
+        ]);
+    }
 }
